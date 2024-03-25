@@ -1,16 +1,43 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+type Product struct {
+	id        int
+	name      string
+	inventory int
+	price     int
 }
 
 func main() {
-	http.HandleFunc("/", helloWorld)
-	log.Fatal(http.ListenAndServe(":9003", nil))
+
+	connectionString := "root:password@tcp(127.0.0.1:3306)/sanjeev"
+
+	db, err := sql.Open("mysql", connectionString)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	rows, err := db.Query("SELECT * FROM products")
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p Product
+
+		rows.Scan(&p.id, &p.name, &p.inventory, &p.price)
+
+		fmt.Println(p)
+	}
+
 }
